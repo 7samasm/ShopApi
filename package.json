@@ -1,0 +1,30 @@
+{
+  "name": "shop",
+  "version": "1.0.0",
+  "description": "shopApi",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest",
+    "start": "nodemon app.js",
+    "start2": "nodemon B-API/app.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "body-parser": "^1.15.0",
+    "cors": "^2.8.5",
+    "crypto-js": "^3.1.9-1",
+    "express": "^4.13.4",
+    "jsonwebtoken": "^8.5.1",
+    "lodash": "^4.17.15",
+    "mongo-cursor-pagination": "^7.1.0",
+    "mongoose": "^4.4.7",
+    "mongoose-paginate": "^5.0.3",
+    "validator": "^11.1.0"
+  },
+  "devDependencies": {
+    "jest": "^24.9.0",
+    "mocha": "^6.0.2"
+  }
+}
