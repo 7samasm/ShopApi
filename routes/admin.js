@@ -8,20 +8,9 @@ const router = express.Router();
 
 router.post('/signup', adminController.signUp);
 router.post('/login', adminController.login);
-
-// /admin/add-product => GET
-router.get('/add-product', adminController.getAddProduct);
-
-// /admin/products => GET
-router.get('/products', adminController.getProducts);
-
-// /admin/add-product => POST
-router.post('/add-product', adminController.postAddProduct);
-
-router.get('/edit-product/:productId', adminController.getEditProduct);
-
-router.post('/edit-product', adminController.postEditProduct);
-
-router.post('/delete-product', adminController.postDeleteProduct);
+router.get('/products',auth,adminController.getProducts);
+router.post('/add-product',auth,adminController.postAddProduct);
+router.post('/edit-product',auth,adminController.postEditProduct);
+router.post('/delete-product',auth,adminController.postDeleteProduct);
 
 module.exports = router;

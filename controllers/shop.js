@@ -1,4 +1,5 @@
 const Product = require('../models/product');
+const User  = require('../models/user');
 const Order = require('../models/order');
 
 exports.getProducts = (req, res, next) => {
@@ -36,12 +37,11 @@ exports.getIndex = (req, res, next) => {
     });
 };
 
-exports.getCart = (req, res, next) => {
-    req.user
-    .populate('cart.items.productId')
-    .execPopulate()
-    .then(user => {
-        const products = user.cart.items;
+exports.getCart = async (req, res, next) => {
+    try {
+        const user     = await User.findById(req.userId)
+        const userwp   = await user.populate('cart.items.productId').execPopulate()
+        const products = userwp.cart.items;
         const dataCart = {
             products,
             totalItems : (()=>{
@@ -60,29 +60,33 @@ exports.getCart = (req, res, next) => {
             })()
         }
         res.status(200).send(dataCart)
-    })
-    .catch(err => console.log(err));
+    } catch(e) {
+        console.log(e);
+    }
 };
 
 exports.postCart = async (req, res, next) => {
     try {
         const prodId    = req.body.productId;
+        const user      = await User.findById(req.userId)
         const product   = await Product.findById(prodId)
-        const result    = await req.user.addToCart(product)
+        const result    = await user.addToCart(product)
         res.status(201).send(result)
     } catch(e) {
         res.status(404).send(e)
     }
 };
 
-exports.postCartDeleteProduct = (req, res, next) => {
-    const prodId = req.body.productId;
-    req.user
-    .removeFromCart(prodId)
-    .then(result => {
+exports.postCartDeleteProduct = async(req, res, next) => {
+    try {
+        const prodId = req.body.productId;
+        const user   = await User.findById(req.userId)
+        await user.removeFromCart(prodId)
         res.send('deleated').status(200)
-    })
-    .catch(err => console.log(err));
+         
+    } catch(e) {
+        console.log(e);
+    }
 };
 
 exports.postOrder = (req, res, next) => {
