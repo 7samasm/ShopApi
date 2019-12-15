@@ -40,8 +40,8 @@ exports.getIndex = (req, res, next) => {
 exports.getCart = async (req, res, next) => {
     try {
         const user     = await User.findById(req.userId)
-        const userwp   = await user.populate('cart.items.productId').execPopulate()
-        const products = userwp.cart.items;
+        const userwp   = await user.populate('cart.productId').execPopulate()
+        const products = userwp.cart;
         const dataCart = {
             products,
             totalItems : (()=>{

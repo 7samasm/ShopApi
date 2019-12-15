@@ -87,9 +87,7 @@ exports.postEditProduct = async (req, res, next) => {
         for (const prop in body) {
             product[prop] = body[prop]
         }
-        console.log(product)
         await product.save();
-        console.log('UPDATED PRODUCT!');
         res.status(200).send("updated")
     } catch(e) {
         console.log(e.message);
