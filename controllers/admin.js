@@ -10,7 +10,7 @@ exports.signUp = async (req,res) => {
     const body = pick(req.body,['name','email','password'])
     // hashing password
     const hashedPass = await bcrypt.hash(body.password,10)
-    // reset mutate body's password whith hashedPass
+    // mutate body's password whith hashedPass
     body.password = hashedPass
     const user = new User(body);
     res.status(201).send(await user.save())
@@ -52,6 +52,18 @@ exports.login = async (req, res, next) => {
     }
 
 };
+
+exports.removeUser = async (req,res,next) => {
+    try {
+        const userId = req.body.userId
+        const user = await User.findById(userId)
+        await user.remove()
+        res.status(204).send('deleted successfly!')
+    } catch (error) {
+        next(error)
+    }
+    
+} 
 
 exports.postAddProduct = async (req, res, next) => {
     try {

@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const Product     = require('./product')
 
 const Schema = mongoose.Schema;
 
@@ -15,6 +16,13 @@ const userSchema = new Schema({
         type : String,
         required : true
     },
+    products : [
+        {
+            type     : Schema.Types.ObjectId,
+            ref      : 'Product',
+            required : true
+        }
+    ],
     cart: {
         items: [
             {
@@ -30,6 +38,13 @@ const userSchema = new Schema({
     }
 });
 
+//middlewares
+
+userSchema.post("remove",doc => {
+    Product.deleteMany({userId : doc._id})
+})
+
+// methods
 userSchema.methods.addToCart = function(product) {
     const cartProductIndex = this.cart.items.findIndex(cp => {
         return cp.productId.toString() === product._id.toString();
