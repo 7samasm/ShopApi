@@ -34,3 +34,5 @@ const db = mongoose.connect(config.getDbConnectionString(),{useMongoClient : tru
   .catch(err => {
     console.log(err);
   });
+  module.exports = app
+
