@@ -1,19 +1,32 @@
 const pick    = require('lodash').pick
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { validationResult } = require('express-validator')
 
 const Product = require('../models/product');
 const User    = require('../models/user')
 
-exports.signUp = async (req,res) => {
-    // get body values
-    const body = pick(req.body,['name','email','password'])
-    // hashing password
-    const hashedPass = await bcrypt.hash(body.password,10)
-    // mutate body's password whith hashedPass
-    body.password = hashedPass
-    const user = new User(body);
-    res.status(201).send(await user.save())
+exports.signUp = async (req,res,next) => {
+    try {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            console.log(errors)
+            const error = new Error('Validation failed.');
+            error.statusCode = 422;
+            error.data = errors.array();
+            throw error;
+        }
+        // get body values
+        const body = pick(req.body,['name','email','password'])
+        // hashing password
+        const hashedPass = await bcrypt.hash(body.password,10)
+        // mutate body's password whith hashedPass
+        body.password = hashedPass
+        const user = new User(body);
+        res.status(201).send(await user.save()) 
+    } catch (err) {
+        next(err)
+    }
 }
 
 exports.login = async (req, res, next) => {
