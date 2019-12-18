@@ -1,6 +1,7 @@
+const objectId= require('mongoose').Types.ObjectId
 const Product = require('../models/product');
-const User  = require('../models/user');
-const Order = require('../models/order');
+const User    = require('../models/user');
+const Order   = require('../models/order');
 
 exports.getProducts = (req, res, next) => {
     Product.find()
@@ -13,17 +14,23 @@ exports.getProducts = (req, res, next) => {
         });
     })
     .catch(err => {
-        console.log(err);
+        next(err);
     });
 };
 
-exports.getProduct = (req, res, next) => {
-    const prodId = req.params.productId;
-    Product.findById(prodId)
-    .then(product => {
-        res.send(product).status(200)
-    })
-    .catch(err => console.log(err));
+exports.getProduct = async (req, res, next) => {
+    try {
+        const prodId = req.params.productId;
+        if(objectId.isValid(prodId)) {
+            const product = await Product.findById(prodId)
+            res.send(product).status(200)
+        } else {
+            res.send(false)
+        }
+    }
+    catch(e){
+        next(e)
+    };
 };
 
 exports.getIndex = (req, res, next) => {
@@ -33,7 +40,7 @@ exports.getIndex = (req, res, next) => {
     }
     )
     .catch(err => {
-        console.log(err);
+        next(err);
     });
 };
 
@@ -61,7 +68,7 @@ exports.getCart = async (req, res, next) => {
         }
         res.status(200).send(dataCart)
     } catch(e) {
-        console.log(e);
+        next(e);
     }
 };
 
@@ -73,7 +80,7 @@ exports.postCart = async (req, res, next) => {
         const result    = await user.addToCart(product)
         res.status(201).send(result)
     } catch(e) {
-        res.status(404).send(e)
+        next(e)
     }
 };
 
@@ -85,7 +92,7 @@ exports.postCartDeleteProduct = async(req, res, next) => {
         res.send('deleated').status(200)
          
     } catch(e) {
-        console.log(e);
+        next(e)
     }
 };
 
@@ -112,7 +119,7 @@ exports.postOrder = (req, res, next) => {
     .then(() => {
         res.redirect('/orders');
     })
-    .catch(err => console.log(err));
+    .catch(err => next(err));
 };
 
 exports.getOrders = (req, res, next) => {
@@ -124,5 +131,5 @@ exports.getOrders = (req, res, next) => {
             orders: orders
         });
     })
-    .catch(err => console.log(err));
+    .catch(err => next(err));
 };

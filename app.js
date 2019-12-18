@@ -4,7 +4,7 @@ const bodyParser     = require('body-parser');
 const cors           = require('cors');
 const mongoose       = require('mongoose');
 const config         = require('./config');
-const errorController= require('./controllers/error');
+const errorHandeler  = require('./middleware/errorHandler');
 const User           = require('./models/user');
 const adminRoutes    = require('./routes/admin');
 const shopRoutes     = require('./routes/shop');
@@ -20,7 +20,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 //middlewares routes 
 app.use('/admin', adminRoutes);
 app.use(shopRoutes);
-app.use(errorController.get404);
+app.use(errorHandeler);
 
 const port = process.env.PORT || 3001;
 

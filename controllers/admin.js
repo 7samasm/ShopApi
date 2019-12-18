@@ -1,6 +1,7 @@
-const pick    = require('lodash').pick
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
+const pick                 = require('lodash').pick
+const bcrypt               = require('bcryptjs');
+const jwt                  = require('jsonwebtoken');
+const objectId             = require('mongoose').Types.ObjectId
 const { validationResult } = require('express-validator')
 
 const Product = require('../models/product');
@@ -8,14 +9,16 @@ const User    = require('../models/user')
 
 exports.signUp = async (req,res,next) => {
     try {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            console.log(errors)
-            const error = new Error('Validation failed.');
-            error.statusCode = 422;
-            error.data = errors.array();
-            throw error;
-        }
+        // check inputs validation
+        const errs = validationResult(req);
+        if (!errs.isEmpty()) {
+            for(err of errs.errors){
+                const e = new Error(`${err.msg} in ${err.param} input`)
+                e.statusCode = 422
+                e.data = errs.array()
+                throw e
+            }
+        } 
         // get body values
         const body = pick(req.body,['name','email','password'])
         // hashing password
@@ -31,6 +34,15 @@ exports.signUp = async (req,res,next) => {
 
 exports.login = async (req, res, next) => {
     try {
+        // check inputs validation
+        const errs = validationResult(req);
+        if (!errs.isEmpty()) {
+            for(err of errs.errors){
+                const e = new Error(`${err.msg} in ${err.param} input`)
+                e.statusCode = 422
+                throw e
+            }
+        }        
         // get requested name and password
         const {name,password} = pick(req.body,['name','password'])
         // get user by requested name and check if its found
@@ -88,7 +100,7 @@ exports.postAddProduct = async (req, res, next) => {
         });
         res.status(201).send(await product.save())
     } catch(e) {
-        console.log(e);
+        next(e)
     }
 };
 
@@ -103,7 +115,7 @@ exports.postEditProduct = async (req, res, next) => {
         await product.save();
         res.status(200).send("updated")
     } catch(e) {
-        console.log(e.message);
+        next(e)
     }
 };
 
@@ -113,7 +125,7 @@ exports.postDeleteProduct = async (req, res, next) => {
         await Product.findByIdAndRemove(prodId)
         res.status(200).send('deleted succssfly')
     } catch(e) {
-        console.log(e);
+        next(e)
     }
 };
 
@@ -123,6 +135,21 @@ exports.getProducts = async (req, res, next) => {
         const userProds = await Product.find({userId : user})
         res.status(200).send(userProds)
     } catch(e) {
-        console.log(e);
+        next(e);
+    }
+};
+
+exports.getProduct = async (req, res, next) => {
+    try {
+        const {id}      = req.params;
+        if(objectId.isValid(id)) {
+            const user      = await User.findById(req.userId)
+            const userProds = await Product.findOne({_id : id , userId : user._id})
+            res.status(200).send(userProds)  
+        } else {
+            res.send(false)
+        }
+    } catch(e) {
+        next(e)
     }
 };
