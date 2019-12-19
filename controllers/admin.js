@@ -92,11 +92,19 @@ exports.removeUser = async (req,res,next) => {
 
 exports.postAddProduct = async (req, res, next) => {
     try {
-        const user    = await User.findById(req.userId)
+        // check inputs validation
+        const errs = validationResult(req);
+        if (!errs.isEmpty()) {
+            for(err of errs.errors){
+                const e = new Error(`${err.msg} in ${err.param} input`)
+                e.statusCode = 422
+                throw e
+            }
+        }         
         const body    = pick(req.body,['title','price','description','imageUrl'])
         const product = new Product({
             ...body,
-            userId: user
+            userId: req.userId
         });
         res.status(201).send(await product.save())
     } catch(e) {
@@ -106,14 +114,22 @@ exports.postAddProduct = async (req, res, next) => {
 
 exports.postEditProduct = async (req, res, next) => {
     try {
+        // check inputs validation
+        const errs = validationResult(req);
+        if (!errs.isEmpty()) {
+            for(err of errs.errors){
+                const e = new Error(`${err.msg} in ${err.param} input`)
+                e.statusCode = 422
+                throw e
+            }
+        }         
         const prodId  = req.body.productId;
         const body    = pick(req.body,['title','price','description','imageUrl'])
         const product = await Product.findById(prodId)
         for (const prop in body) {
             product[prop] = body[prop]
         }
-        await product.save();
-        res.status(200).send("updated")
+        res.status(200).send(await product.save())
     } catch(e) {
         next(e)
     }

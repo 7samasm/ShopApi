@@ -37,8 +37,32 @@ const login = [
         .not()
         .isEmpty()        
 ]
+const product_validate = [
+    body('title')
+        .trim()
+        .escape()
+        .not()
+        .isEmpty(),
+    body('price')
+        .trim()
+        .escape()
+        .not()
+        .isEmpty()
+        .isNumeric(),
+    body('description')
+        .trim()
+        .escape()
+        .not()
+        .isEmpty(),
+    body('imageUrl')
+        .trim()
+        .escape()
+        .not()
+        .isEmpty()        
+]
 
 module.exports = {
 	register,
-    login
+    login,
+    product_validate
 }
