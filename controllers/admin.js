@@ -43,10 +43,10 @@ exports.login = async (req, res, next) => {
                 throw e
             }
         }        
-        // get requested name and password
-        const {name,password} = pick(req.body,['name','password'])
-        // get user by requested name and check if its found
-        const user = await User.findOne({ name: name })
+        // get requested email and password
+        const {email,password} = pick(req.body,['email','password'])
+        // get user by requested email and check if its found
+        const user = await User.findOne({ email: email })
         if (!user) {
             const error = new Error('A user with this email could not be found.');
             error.statusCode = 401;
@@ -145,11 +145,18 @@ exports.postDeleteProduct = async (req, res, next) => {
     }
 };
 
-exports.getProducts = async (req, res, next) => {
+exports.userInfos = async (req, res, next) => {
     try {
-        const user     =  await User.findById(req.userId)
-        const userProds = await Product.find({userId : user})
-        res.status(200).send(userProds)
+        const user      =  await User.findById(req.userId)
+        const userProds = await Product.find({userId : user._id})
+        res.status(200).send({
+            user     : {
+                id    : user._id,
+                name  : user.name,
+                email : user.email
+            },
+            products : [...userProds]            
+        })
     } catch(e) {
         next(e);
     }

@@ -26,11 +26,11 @@ const register = [
 ]
 
 const login = [
-    body('name')
-        .trim()
-        .escape()
+    body('email')
+        .isEmail()
         .not()
-        .isEmpty(),
+        .isEmpty()
+        .normalizeEmail(),
     body('password')
         .trim()
         .escape()

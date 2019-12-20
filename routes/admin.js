@@ -12,8 +12,9 @@ router.post('/delete-user', adminController.removeUser);
 router.post('/add-product', adminValid.product_validate,auth,adminController.postAddProduct);
 router.post('/edit-product',adminValid.product_validate,auth,adminController.postEditProduct);
 
-router.get('/products'       ,auth,adminController.getProducts);
+// router.get('/products'       ,auth,adminController.getProducts);
 router.get('/products/:id'   ,auth,adminController.getProduct);
+router.get('/user-info'       ,auth,adminController.userInfos);
 router.post('/delete-product',auth,adminController.postDeleteProduct);
 
 module.exports = router;
