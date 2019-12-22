@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "cross-env NODE_ENV=test jest --watch --testTimeout=10000",
-    "start": "nodemon app.js",
+    "start": "node app.js",
     "start2": "nodemon B-API/app.js"
   },
   "author": "",
@@ -13,6 +13,7 @@
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.15.0",
+    "connect-history-api-fallback": "^1.6.0",
     "cors": "^2.8.5",
     "crypto-js": "^3.1.9-1",
     "express": "^4.13.4",

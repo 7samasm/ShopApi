@@ -3,12 +3,12 @@ const express        = require('express');
 const bodyParser     = require('body-parser');
 const cors           = require('cors');
 const mongoose       = require('mongoose');
+const history        = require('connect-history-api-fallback');
 const config         = require('./config');
 const errorHandeler  = require('./middleware/errorHandler');
 const User           = require('./models/user');
 const adminRoutes    = require('./routes/admin');
 const shopRoutes     = require('./routes/shop');
-
 
 const app = express();
 
@@ -16,10 +16,13 @@ const app = express();
 app.use(bodyParser.json());
 app.use(cors())
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(history())
+// repaet again for history middleware requirment
+app.use(express.static(path.join(__dirname, 'public')));
 
 //middlewares routes 
-app.use('/admin', adminRoutes);
-app.use(shopRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api',shopRoutes);
 app.use(errorHandeler);
 
 const port = process.env.PORT || 3001;
