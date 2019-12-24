@@ -28,8 +28,8 @@ app.use(errorHandeler);
 const port = process.env.PORT || 3001;
 
 //conect to db
-const db = mongoose.connect(config.getDbConnectionString(),{useMongoClient : true} , e => {
-	if (e) {console.log('conection failed :(')}
+const db = mongoose.connect(config.getDbConnectionString(), { useNewUrlParser: true , useUnifiedTopology: true} , e => {
+	if (e) return console.log('conection failed :(')
 })
   .then(result => {
     app.listen(port);

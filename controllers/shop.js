@@ -37,8 +37,7 @@ exports.getIndex = (req, res, next) => {
     Product.find({})
     .then(products => {
         res.status(200).send(products)
-    }
-    )
+    })
     .catch(err => {
         next(err);
     });
