@@ -15,8 +15,8 @@ const app = express();
 // middlewares funcs
 app.use(bodyParser.json());
 app.use(cors())
-app.use(express.static(path.join(__dirname, 'public')));
-app.use(history())
+// app.use(express.static(path.join(__dirname, 'public')));
+// app.use(history())
 // repaet again for history middleware requirment
 app.use(express.static(path.join(__dirname, 'public')));
 

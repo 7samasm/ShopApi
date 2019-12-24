@@ -2,5 +2,5 @@
     "db"   : "shop",
     "uname": "7admin",
     "pwd"  : "umTR@x7.b_whAC6",
-    "mode" : "prod"
+    "mode" : "dev"
 }
