@@ -15,8 +15,8 @@ const app = express();
 // middlewares funcs
 app.use(bodyParser.json());
 app.use(cors())
-app.use(express.static(path.join(__dirname, 'public')));
-app.use(history())
+// app.use(express.static(path.join(__dirname, 'public')));
+// app.use(history())
 // repaet again for history middleware requirment
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -28,8 +28,8 @@ app.use(errorHandeler);
 const port = process.env.PORT || 3001;
 
 //conect to db
-const db = mongoose.connect(config.getDbConnectionString(),{useMongoClient : true} , e => {
-	if (e) {console.log('conection failed :(')}
+const db = mongoose.connect(config.getDbConnectionString(), { useNewUrlParser: true , useUnifiedTopology: true} , e => {
+	if (e) return console.log('conection failed :(')
 })
   .then(result => {
     app.listen(port);

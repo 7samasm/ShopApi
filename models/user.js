@@ -76,8 +76,4 @@ userSchema.methods.clearCart = function() {
     return this.save();
 };
 
-userSchema.methods.generateAuthToken = function() {
-    let user = this
-}
-
 module.exports = mongoose.model('User', userSchema);

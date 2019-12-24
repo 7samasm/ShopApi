@@ -112,7 +112,7 @@ exports.postAddProduct = async (req, res, next) => {
     }
 };
 
-exports.postEditProduct = async (req, res, next) => {
+exports.postEditProduct =  (req, res, next) => {
     try {
         // check inputs validation
         const errs = validationResult(req);
@@ -125,20 +125,27 @@ exports.postEditProduct = async (req, res, next) => {
         }         
         const prodId  = req.body.productId;
         const body    = pick(req.body,['title','price','description','imageUrl'])
-        const product = await Product.findById(prodId)
-        for (const prop in body) {
-            product[prop] = body[prop]
-        }
-        res.status(200).send(await product.save())
+        Product.findById(prodId,(err,doc)=>{
+            if (err) return err
+            for (const prop in body) {
+                doc.set(prop,body[prop]) 
+            }
+            doc.save()
+            res.status(200).send(doc)
+        }).catch(e => next(e))
+
     } catch(e) {
         next(e)
     }
 };
 
-exports.postDeleteProduct = async (req, res, next) => {
+exports.postDeleteProduct = (req, res, next) => {
     try {
         const prodId       = req.body.productId;
-        await Product.findByIdAndRemove(prodId)
+        Product.findById(prodId,(err,doc)=>{
+            if (err) throw err
+            doc.remove()
+        })
         res.status(200).send('deleted succssfly')
     } catch(e) {
         next(e)
@@ -148,7 +155,7 @@ exports.postDeleteProduct = async (req, res, next) => {
 exports.userInfos = async (req, res, next) => {
     try {
         const user      =  await User.findById(req.userId)
-        const userProds = await Product.find({userId : user._id})
+        const userProds =  await Product.find({userId : user._id})
         res.status(200).send({
             user     : {
                 id    : user._id,
