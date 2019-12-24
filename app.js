@@ -32,6 +32,7 @@ const db = mongoose.connect(config.getDbConnectionString(), { useNewUrlParser: t
 	if (e) return console.log('conection failed :(')
 })
   .then(result => {
+  	console.log(`server is runnig on port : ${port}`)
     app.listen(port);
   })
   .catch(err => {

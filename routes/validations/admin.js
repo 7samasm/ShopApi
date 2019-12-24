@@ -58,6 +58,9 @@ const product_validate = [
         .trim()
         .escape()
         .not()
+        .isEmpty()
+    body('sectionId')
+        .not()
         .isEmpty()        
 ]
 

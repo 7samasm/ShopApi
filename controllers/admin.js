@@ -101,7 +101,7 @@ exports.postAddProduct = async (req, res, next) => {
                 throw e
             }
         }         
-        const body    = pick(req.body,['title','price','description','imageUrl'])
+        const body    = pick(req.body,['title','price','description','imageUrl','sectionId'])
         const product = new Product({
             ...body,
             userId: req.userId

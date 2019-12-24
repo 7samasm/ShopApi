@@ -20,15 +20,15 @@ const productSchema = new Schema({
         type: String,
         required: true
     },
+    sectionId : {
+        type: Schema.Types.ObjectId,
+        ref: 'Section',
+        required: true        
+    },
     userId: {
         type: Schema.Types.ObjectId,
         ref: 'User',
         required: true
-    },
-    sectionId : {
-        type: Schema.Types.ObjectId,
-        ref: 'Section',
-        required: false        
     }
 });
 
