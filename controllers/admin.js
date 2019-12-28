@@ -101,7 +101,7 @@ exports.postAddProduct = async (req, res, next) => {
                 throw e
             }
         }         
-        const body    = pick(req.body,['title','price','description','imageUrl','sectionId'])
+        const body    = pick(req.body,['title','price','description','imageUrl','section'])
         const product = new Product({
             ...body,
             userId: req.userId
@@ -154,19 +154,89 @@ exports.postDeleteProduct = (req, res, next) => {
 
 exports.userInfos = async (req, res, next) => {
     try {
-        const user      =  await User.findById(req.userId)
-        const userProds =  await Product.find({userId : user._id})
-        res.status(200).send({
-            user     : {
-                id    : user._id,
-                name  : user.name,
-                email : user.email
+        const userId = req.userId;
+        if (!objectId.isValid(userId)) throw new Error('id is invalid')
+        const stat = await User.aggregate([
+            {
+                $match : {
+                    _id : objectId(userId)
+                }
             },
-            products : [...userProds]            
+            {$unwind :
+                {
+                 path : "$cart",
+                 preserveNullAndEmptyArrays : true
+                }
+            },
+            {
+                $lookup : {
+                    from : "products",
+                    localField : "cart.productId",
+                    foreignField : "_id",
+                    as : "_cart"
+                }
+            },
+            {$unwind :
+                {
+                 path : "$_cart",
+                 preserveNullAndEmptyArrays : true
+                }
+            },           
+            {$addFields : {"_cart.quantity" : "$cart.quantity"}},        
+            {
+                $project : {
+                    _id  : 1,name : 1,email: 1,
+                    _cart : "$_cart"
+                }
+            },
+            {
+                $group : {
+                    _id: {
+                        _id : "$_id",
+                        user : {
+                            id   : "$_id",
+                            name : "$name",
+                            email : "$email"
+                        }
+                    },
+                    _cart : { $push : "$_cart"}
+                }
+            },      
+            {
+                $project : {
+                    _id : null,
+                    user : "$_id.user",
+                    cartShape : {
+                        products   : {$cond : [{$eq : ["$_cart",[{}]]},[],"$_cart"]},
+                        totalPrice : {
+                            $reduce : {
+                                input : "$_cart",
+                                initialValue    : "$price",
+                                in    : {$sum : ["$$value",{$multiply : ["$$this.quantity","$$this.price"]}]}
+                            }
+                        },
+                        totalItems : {
+                            $reduce : {
+                                input : "$_cart",
+                                initialValue    : "$quantity",
+                                in    : {$sum : ["$$value","$$this.quantity"]}
+                            }
+                        }
+                    }
+                }
+            },
+        ]).exec()
+        Product.find({userId},(err,docs)=>{
+            res.send({
+                products : docs,
+                user   : stat[0].user,
+                cart   : stat[0].cartShape
+            }).status(200)   
         })
-    } catch(e) {
-        next(e);
     }
+    catch(e){
+        next(e)
+    };
 };
 
 exports.getProduct = async (req, res, next) => {
