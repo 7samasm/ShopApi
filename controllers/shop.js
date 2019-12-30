@@ -2,47 +2,38 @@ const objectId= require('mongoose').Types.ObjectId
 const Product = require('../models/product');
 const User    = require('../models/user');
 const Order   = require('../models/order');
-const mongoose = require('mongoose')
 
 exports.getProductsOfUser = async (req, res, next) => {
     try {
         const userId = '5df629e9333785293aff6bb2';
         if (!objectId.isValid(userId)) throw new Error('id is invalid')
         const stat = await User.aggregate([
-            {
-                $match : {
-                    _id : objectId(userId)
+            //  select user who match requsted id
+            {   $match  : { _id : objectId(userId)} },
+            // split his cart into several documonts
+            {   $unwind :{
+                    path : "$cart",
+                    preserveNullAndEmptyArrays : true
                 }
             },
-            {$unwind :
-                {
-                 path : "$cart",
-                 preserveNullAndEmptyArrays : true
-                }
-            },
-            {
-                $lookup : {
+            // bring product's data for each splited document
+            {   $lookup : {
                     from : "products",
                     localField : "cart.productId",
                     foreignField : "_id",
                     as : "_cart"
                 }
             },
-            {$unwind :
-                {
-                 path : "$_cart",
-                 preserveNullAndEmptyArrays : true
+            // will get singel doc cause look up applay for each ex unwind
+            {   $unwind :{
+                    path : "$_cart",
+                    preserveNullAndEmptyArrays : true
                 }
             },
-            {$addFields : {"_cart.quantity" : "$cart.quantity"}},        
-            {
-                $project : {
-                    _id  : 1,name : 1,email: 1,
-                    _cart : "$_cart"
-                }
-            },
-            {
-                $group : {
+            // add quantity field to cart
+            {   $addFields : {"_cart.quantity" : "$cart.quantity"} },
+            // group spilted docs by _id        
+            {   $group : {
                     _id: {
                         _id : "$_id",
                         user : {
@@ -51,39 +42,29 @@ exports.getProductsOfUser = async (req, res, next) => {
                             email : "$email"
                         }
                     },
-                    _cart : { $push : "$_cart"}
+                    _cart : { $push : "$_cart"},
+                    totalPrice : {$sum : {$multiply : ["$_cart.price","$_cart.quantity"]}},
+                    totalItems : {$sum : {$multiply : [1,"$_cart.quantity"]}}
                 }
-            },      
-            {
-                $project : {
-                    _id : null,
+            },
+            // bunddle to final output      
+            {   $project : {
+                    _id : 0,
                     user : "$_id.user",
                     cartShape : {
                         products   : {$cond : [{$eq : ["$_cart",[{}]]},[],"$_cart"]},
-                        totalPrice : {
-                            $reduce : {
-                                input : "$_cart",
-                                initialValue    : "$price",
-                                in    : {$sum : ["$$value",{$multiply : ["$$this.quantity","$$this.price"]}]}
-                            }
-                        },
-                        totalItems : {
-                            $reduce : {
-                                input : "$_cart",
-                                initialValue    : "$quantity",
-                                in    : {$sum : ["$$value","$$this.quantity"]}
-                            }
-                        }
+                        totalPrice : "$totalPrice",
+                        totalItems : "$totalItems"
                     }
                 }
-            },
+            }
         ]).exec()
-        res.send(stat)
+        // res.send(stat)
         Product.find({userId},(err,docs)=>{
             res.send({
-                products : docs,
                 user   : stat[0].user,
-                cart   : stat[0].cartShape
+                cart   : stat[0].cartShape,
+                products : docs
             }).status(200)   
         })
     }
