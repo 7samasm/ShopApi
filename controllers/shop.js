@@ -98,6 +98,17 @@ exports.getIndex = (req, res, next) => {
     });
 };
 
+exports.getProductsBySection = (req, res, next) => {
+    const section = req.params.section;
+    Product.find({section})
+    .then(products => {
+        res.status(200).send(products)
+    })
+    .catch(err => {
+        next(err);
+    });
+};
+
 exports.postCart = async (req, res, next) => {
     try {
         const prodId    = req.body.productId;

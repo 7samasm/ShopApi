@@ -7,6 +7,7 @@ const router = express.Router();
 
 router.get('/', shopController.getIndex);
 router.get('/products/:productId', shopController.getProduct);
+router.get('/sections/:section',shopController.getProductsBySection)
 router.post('/cart',auth,shopController.postCart);
 router.post('/cart-delete-item',auth,shopController.postCartDeleteProduct);
 //for test

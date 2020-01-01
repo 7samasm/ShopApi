@@ -3,7 +3,7 @@ const express        = require('express');
 const bodyParser     = require('body-parser');
 const cors           = require('cors');
 const mongoose       = require('mongoose');
-// const history        = require('connect-history-api-fallback');
+const history        = require('connect-history-api-fallback');
 const config         = require('./config');
 const errorHandeler  = require('./middleware/errorHandler');
 const adminRoutes    = require('./routes/admin');
@@ -14,8 +14,8 @@ const app = express();
 // middlewares funcs
 app.use(bodyParser.json());
 app.use(cors())
-// app.use(express.static(path.join(__dirname, 'public')));
-// app.use(history())
+app.use(express.static(path.join(__dirname, 'public')));
+app.use(history())
 // repaet again for history middleware requirment
 app.use(express.static(path.join(__dirname, 'public')));
 

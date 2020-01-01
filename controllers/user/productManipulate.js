@@ -39,7 +39,7 @@ exports.postEditProduct =  (req, res, next) => {
             }
         }         
         const prodId  = req.body.productId;
-        const body    = pick(req.body,['title','price','description','imageUrl'])
+        const body    = pick(req.body,['title','price','description','imageUrl','section'])
         Product.findById(prodId,(err,doc)=>{
             if (err) return err
             for (const prop in body) {
@@ -60,8 +60,8 @@ exports.postDeleteProduct = (req, res, next) => {
         Product.findById(prodId,(err,doc)=>{
             if (err) throw err
             doc.remove()
+            res.status(200).send(doc)
         })
-        res.status(200).send('deleted succssfly')
     } catch(e) {
         next(e)
     }
@@ -110,7 +110,7 @@ exports.userInfos = async (req, res, next) => {
             },
             // add quantity field to cart
             {   $addFields : {"_cart.quantity" : "$cart.quantity"} },
-            // group spilted docs by _id        
+            // group spilted docs by user _id        
             {   $group : {
                     _id: {
                         _id : "$_id",
