@@ -17,6 +17,8 @@ exports.postAddProduct = async (req, res, next) => {
             }
         }         
         const body    = pick(req.body,['title','price','description','imageUrl','section'])
+        // mutate image url with requsted uploded file if found
+        if(req.file) body.imageUrl = req.file.filename
         const product = new Product({
             ...body,
             userId: req.userId
@@ -40,6 +42,8 @@ exports.postEditProduct =  (req, res, next) => {
         }         
         const prodId  = req.body.productId;
         const body    = pick(req.body,['title','price','description','imageUrl','section'])
+        // mutate image url with requsted uploded file if found
+        if(req.file) body.imageUrl = req.file.filename 
         Product.findById(prodId,(err,doc)=>{
             if (err) return err
             for (const prop in body) {
