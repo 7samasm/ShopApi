@@ -35,32 +35,33 @@ userSchema.post("remove",doc => {
 })
 
 // methods
-userSchema.methods.addToCart = function(product) {
-    const cartProductIndex = this.cart.findIndex(el => {
-        return el.productId.toString() === product._id.toString();
+userSchema.methods.addToCart = function({_id},quty) {
+    // index num or -1
+    const productIndexInCart = this.cart.findIndex(el => {
+        return el.productId.toString() === _id.toString();
     });
-    let newQuantity = 1;
-    const updatedCartItems = [...this.cart];
+    
+    const cartItemsCopy = [...this.cart];
 
-    if (cartProductIndex >= 0) {
-        newQuantity = this.cart[cartProductIndex].quantity + 1;
-        updatedCartItems[cartProductIndex].quantity = newQuantity;
+    if (productIndexInCart >= 0) {
+        let newQuantity = this.cart[productIndexInCart].quantity + quty;
+        cartItemsCopy[productIndexInCart].quantity = newQuantity;
     } else {
-        // console.log(updatedCartItems)
-        updatedCartItems.push({
-            productId : product._id,
-            quantity: newQuantity
+        // console.log(cartItemsCopy)
+        cartItemsCopy.push({
+            productId : _id,
+            quantity: quty
         });
     }
-    this.cart = updatedCartItems;
+    this.cart = cartItemsCopy;
     return this.save();
 };
 
 userSchema.methods.removeFromCart = function(productId) {
-    const updatedCartItems = this.cart.filter(item => {
+    const cartItemsCopy = this.cart.filter(item => {
         return item.productId.toString() !== productId.toString();
     });
-    this.cart = updatedCartItems;
+    this.cart = cartItemsCopy;
     return this.save();
 };
 

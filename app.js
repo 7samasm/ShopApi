@@ -1,8 +1,6 @@
-const path           = require('path');
 const express        = require('express');
 const bodyParser     = require('body-parser');
 const cors           = require('cors');
-const mongoose       = require('mongoose');
 const config         = require('./config');
 const history        = require('./middleware/history')
 const errorHandeler  = require('./middleware/errorHandler');
@@ -25,14 +23,9 @@ app.use(errorHandeler);
 const port = process.env.PORT || 3001; 
 
 //conect to db
-const db = mongoose.connect(config.getDbConnectionString(), { useNewUrlParser: true , useUnifiedTopology: true} , e => {
-	if (e) return console.log('conection failed :(')
+config.connectDb((err,res) => {
+	if (err) return console.log(err.message)
+	console.log(`server is runnig on port : ${port}`)
+	app.listen(port);
 })
-  .then(result => {
-  	console.log(`server is runnig on port : ${port}`)
-    app.listen(port);
-  })
-  .catch(err => {
-    console.log(err);
-  });
-  module.exports = app
+module.exports = app

@@ -11,7 +11,7 @@ exports.signUp = async (req,res,next) => {
         const errs = validationResult(req);
         if (!errs.isEmpty()) {
             for(err of errs.errors){
-                const e = new Error(`${err.msg} in ${err.param} input`)
+                const e = new Error(`${err.msg} in ${err.param} input!`)
                 e.statusCode = 422
                 e.data = errs.array()
                 throw e
@@ -36,7 +36,7 @@ exports.login = async (req, res, next) => {
         const errs = validationResult(req);
         if (!errs.isEmpty()) {
             for(err of errs.errors){
-                const e = new Error(`${err.msg} in ${err.param} input`)
+                const e = new Error(`${err.msg} in ${err.param} input!`)
                 e.statusCode = 422
                 throw e
             }
