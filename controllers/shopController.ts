@@ -1,4 +1,4 @@
-import {Controller, Get, Post, Delete} from '@overnightjs/core'
+import {Controller, Get} from '@overnightjs/core'
 import {Logger}  from '@overnightjs/logger'
 import {Request,Response} from 'express'
 import {isValidObjectId} from 'mongoose'

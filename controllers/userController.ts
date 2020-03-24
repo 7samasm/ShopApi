@@ -4,7 +4,6 @@ import { isValidObjectId, Types } from 'mongoose'
 import { pick } from 'lodash'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
-import { validationResult } from 'express-validator'
 
 import Product, { IProduct } from '../models/product'
 import User, { IUser } from '../models/user'
@@ -12,6 +11,7 @@ import isAuth, { Err } from '../middleware/isAuth'
 import {login_validate, product_validate, register_validate } from '../middleware/inputValidate'
 import errMiddleware from '../middleware/errorMiddleware'
 import uplodeMiddleware from '../middleware/uplodeMiddleware'
+import Helper from '../util/helper';
 
 
 @Controller('api/admin')
@@ -37,11 +37,9 @@ export class UserController {
   async deleteCartItem(req: Request, res: Response,  next : NextFunction) {
     try {
       const { productId } = req.body;
-      console.log(productId);
       const user = await User.findById((req as any).userId) as IUser
       await user.removeFromCart(productId)
       res.send('deleated').status(200)
-
     } catch (e) {
       next(e)
     }
@@ -49,17 +47,10 @@ export class UserController {
 
   @Post('add-product')
   @Middleware([uplodeMiddleware('image'),...product_validate,isAuth])
-  async addddProduct(req: Request, res: Response, next : NextFunction) {
+  async addProduct(req: Request, res: Response, next : NextFunction) {
     try {
       // check inputs validation
-      const errs = validationResult(req);
-      if (!errs.isEmpty()) {
-        for (const err of errs.errors) {
-          const e = new Err(`${err.msg} in ${err.param} input`)
-          e.statusCode = 422
-          throw e
-        }
-      }
+      Helper.validResult(req)
       const body = pick(req.body, ['title', 'price', 'description', 'imageUrl', 'section'])
       // mutate image url with requsted uploded file if found
       if (req.file) body.imageUrl = req.file.filename
@@ -78,14 +69,7 @@ export class UserController {
   editProduct(req: Request, res: Response,  next : NextFunction) {
     try {
       // check inputs validation
-      const errs = validationResult(req);
-      if (!errs.isEmpty()) {
-        for (const err of errs.errors) {
-          const e = new Err(`${err.msg} in ${err.param} input`)
-          e.statusCode = 422
-          throw e
-        }
-      }
+      Helper.validResult(req)
       const prodId = req.body.productId;
       const body = pick(req.body, ['title', 'price', 'description', 'imageUrl', 'section']) as {[k : string] : any}
       // mutate image url with requsted uploded file if found
@@ -107,16 +91,12 @@ export class UserController {
 
   @Delete('delete-product')
   @Middleware([isAuth])
-  deleteProduct(req: Request, res: Response,  next : NextFunction) {
+  async deleteProduct(req: Request, res: Response,  next : NextFunction) {
     try {
       const {productId} = req.body;
-      console.log(productId);
-      Product.findById(productId, (err, result) => {
-        if (err) throw err
-        const doc : IProduct = result! as IProduct
-        doc.remove()
-        res.status(200).send(doc)
-      })
+      const doc : IProduct = await Product.findById(productId) as IProduct
+      doc.remove()
+      res.status(200).send(doc)
     } catch (e) {
       next(e)
     }
@@ -128,8 +108,7 @@ export class UserController {
     try {
       const { id } = req.params;
       if (isValidObjectId(id)) {
-        const user = await User.findById((req as any).userId) as IUser
-        const userProds = await Product.findOne({ _id: id, userId: user._id })
+        const userProds = await Product.findOne({ _id: id, userId: (req as any).userId })
         res.status(200).send(userProds)
       } else {
         res.send(false)
@@ -221,15 +200,7 @@ export class UserController {
   private async signUp(req: Request, res: Response,  next : NextFunction) {
     try {
       // check inputs validation
-      const errs = validationResult(req);
-      if (!errs.isEmpty()) {
-        for (const err of errs.errors) {
-          const e = new Err(`${err.msg} in ${err.param} input!`)
-          e.statusCode = 422
-          e.data = errs.array()
-          throw e
-        }
-      }
+      Helper.validResult(req)
       // get body values
       const body = pick(req.body, ['name', 'email', 'password'])
       // hashing password
@@ -248,14 +219,7 @@ export class UserController {
   private async login(req: Request, res: Response,  next : NextFunction) {
     try {
       // check inputs validation
-      const errs = validationResult(req);
-      if (!errs.isEmpty()) {
-        for (const err of errs.errors) {
-          const e = new Err(`${err.msg} in ${err.param} input!`)
-          e.statusCode = 422
-          throw e
-        }
-      }
+      Helper.validResult(req)
       // get requested email and password
       const { email, password } = pick(req.body, ['email', 'password'])
       // get user by requested email and check if its found

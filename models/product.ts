@@ -1,5 +1,6 @@
 import { Schema, models, model, Types, Document,PaginateModel} from 'mongoose'
 import mongoosePaginate from "mongoose-paginate-v2";
+import { IUser } from './user';
 
 
 export interface IProduct extends Document {
@@ -11,7 +12,6 @@ export interface IProduct extends Document {
   userId      : Types.ObjectId
   
 }
-interface IProductModel<T extends Document> extends PaginateModel<T>{}
 
 const productSchema = new Schema(
   {
@@ -46,22 +46,19 @@ const productSchema = new Schema(
 
 productSchema.plugin(mongoosePaginate);
 
-// const user     = await User.findById(req.userId)
-// const userwp   = await user.populate('cart.productId').execPopulate()
-//findByIdAndRemove
 productSchema.pre('remove', async function (next) {
   try {
-    // statements
     const id = this._id
-    let users = await models['User'].find({ "cart.productId": id })
-    users.forEach(el => {
-      el.removeFromCart(id)
+    let users : IUser[] = await models['User'].find({ "cart.productId": id })
+    users.forEach(user => {
+      user.removeFromCart(id)
     });
     next()
   } catch (e) {
-    // statements
     next(e)
   }
 })
-const Product : IProductModel<IProduct> = model<IProduct>('Product', productSchema) as IProductModel<IProduct>;
+
+
+const Product : PaginateModel<IProduct> = model<IProduct>('Product', productSchema) as PaginateModel<IProduct>;
 export default Product
