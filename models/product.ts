@@ -1,9 +1,17 @@
-const mongoose = require('mongoose');
-const mongoosePaginate = require('mongoose-paginate-v2');
+import { Schema, models, model, Types, Document,PaginateModel} from 'mongoose'
+import mongoosePaginate from "mongoose-paginate-v2";
 
-const Users = require('./user');
 
-const Schema = mongoose.Schema;
+export interface IProduct extends Document {
+  title       : string
+  price       : number
+  description : string
+  imageUrl    : string
+  section     : string
+  userId      : Types.ObjectId
+  
+}
+interface IProductModel<T extends Document> extends PaginateModel<T>{}
 
 const productSchema = new Schema(
   {
@@ -33,7 +41,7 @@ const productSchema = new Schema(
       required: true
     }
   },
-  {timestamps : true}
+  { timestamps: true }
 );
 
 productSchema.plugin(mongoosePaginate);
@@ -41,12 +49,12 @@ productSchema.plugin(mongoosePaginate);
 // const user     = await User.findById(req.userId)
 // const userwp   = await user.populate('cart.productId').execPopulate()
 //findByIdAndRemove
-productSchema.pre('remove', async function(next) {
+productSchema.pre('remove', async function (next) {
   try {
     // statements
     const id = this._id
-    let users = await mongoose.models['User'].find({ "cart.productId": id })
-    users.forEach(function(el, index) {
+    let users = await models['User'].find({ "cart.productId": id })
+    users.forEach(el => {
       el.removeFromCart(id)
     });
     next()
@@ -55,5 +63,5 @@ productSchema.pre('remove', async function(next) {
     next(e)
   }
 })
-
-module.exports = mongoose.model('Product', productSchema);
+const Product : IProductModel<IProduct> = model<IProduct>('Product', productSchema) as IProductModel<IProduct>;
+export default Product

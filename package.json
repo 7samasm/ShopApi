@@ -2,14 +2,16 @@
   "name": "shop",
   "version": "1.0.0",
   "description": "shopApi",
-  "main": "index.js",
+  "main": "start.ts",
   "scripts": {
     "test": "cross-env NODE_ENV=test jest --watch --testTimeout=10000",
-    "start": "nodemon app.js"
+    "start": "nodemon --config 'nodemon.json'"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@overnightjs/core": "^1.6.15",
+    "@overnightjs/logger": "^1.1.10",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.15.0",
     "connect-history-api-fallback": "^1.6.0",
