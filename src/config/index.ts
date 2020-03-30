@@ -16,18 +16,15 @@ const getDbConnectionString = () => {
 
 
 
-export const connectDb = async (cb : any) => {
-	try {
-		const res = await connect(
-			getDbConnectionString(),
-			{ useNewUrlParser: true, useUnifiedTopology: true },
-			err => {
-				if (err) throw new Error('conection failed :(')
-			}
-		)
-		cb(null, res)
-	} catch (error) {
-		cb(error, undefined)
-	}
+export const connectDb = async () => {
+
+	return connect(
+		getDbConnectionString(),
+		{ useNewUrlParser: true, useUnifiedTopology: true },
+		err => {
+			if (err) throw new Error('conection failed :(')
+		}
+	)
+
 }
 

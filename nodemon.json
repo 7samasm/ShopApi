@@ -1,7 +1,7 @@
 {
   "watch" : "./",
   "ext"   : "ts",
-  "exec"  : "NODE_ENV=development ts-node ./start.ts",
+  "exec"  : "NODE_ENV=development ts-node src/start.ts",
   "ignore": [
     "./node_modules",
     "**/*.spec.ts"

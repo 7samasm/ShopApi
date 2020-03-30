@@ -7,11 +7,12 @@ import jwt from 'jsonwebtoken'
 
 import Product, { IProduct } from '../models/product'
 import User, { IUser } from '../models/user'
-import isAuth, { Err } from '../middleware/isAuth'
+import isAuth   from '../middleware/isAuth'
 import {login_validate, product_validate, register_validate } from '../middleware/inputValidate'
 import errMiddleware from '../middleware/errorMiddleware'
 import uplodeMiddleware from '../middleware/uplodeMiddleware'
 import Helper from '../util/helper';
+import { Err } from '../@types/extended/extended';
 
 
 @Controller('api/admin')

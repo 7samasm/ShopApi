@@ -2,9 +2,7 @@ import {Controller, Get} from '@overnightjs/core'
 import {Logger}  from '@overnightjs/logger'
 import {Request,Response} from 'express'
 import {isValidObjectId} from 'mongoose'
-
 import Product from '../models/product'
-
 
 @Controller('api')
 export class ShopController {

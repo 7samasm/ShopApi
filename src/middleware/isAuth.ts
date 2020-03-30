@@ -1,13 +1,6 @@
 import { RequestHandler } from "express-serve-static-core";
 import jwt  from 'jsonwebtoken'
-
-export class Err extends Error {
-  statusCode : number = 0
-  data : any[] = []
-  constructor(msg : string){
-    super(msg)
-  }
-}
+import { Err } from "../@types/extended/extended";
 
 const isAuth : RequestHandler = (req, res , next) => {
   const authHeader = req.get('x-Auth');

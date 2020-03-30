@@ -1,5 +1,6 @@
 // import {Application, application} from 'express'
 // import * as express from 'express'
+import 'reflect-metadata'
 import 
 {
   static as staticFiles
@@ -12,7 +13,7 @@ import cors      from 'cors'
 import history   from './middleware/history'
 import * as controllers from './controllers'
 
-export default class App extends Server {
+export default class AppServer extends Server {
   private readonly SERVER_START = 'server start on port : '
   constructor(){
     super(true)
@@ -42,7 +43,7 @@ export default class App extends Server {
     })
   }
 
-  public getApp() {
+  get appInstance(): any {
     return this.app
   }
 

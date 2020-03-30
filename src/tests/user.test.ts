@@ -1,22 +1,42 @@
 // const request = require('supertest')
 // const app = require('../app')
 import request from 'supertest'
-import app from '../start'
+import AppServer from '../appServer'
+import { connectDb } from '../config';
+import { Application } from 'express-serve-static-core';
 
-describe('GET /', () => {
-  it('should get all Products', (done) => {
-    // console.log(app)
-    request(app)
-      .get('/')
-      .expect(200)
-      .end((err, res) => {
-        if (err) {
-          done(err.message)
-        }
+
+describe('user',()=>{
+    let app : Application
+    beforeAll( 
+    async (done) => {
+      try {
+        await connectDb()
+        app = new AppServer().appInstance
         done()
-      })
+      } catch (error) {
+        done(error.message)
+      }
+    }
+  )
+
+  describe('GET /', () => {
+    it('should get all Products', (done) => { 
+      request(app)
+        .get('/api')
+        .expect(200)
+        .end((err, res) => {
+          if (err) done(err.message)
+          console.log(res.body)
+          done()
+        })
+    })
   })
 })
+
+
+
+
 
 // describe('POST /admin/add-product',()=>{
 //     it('should add product',(done)=>{
