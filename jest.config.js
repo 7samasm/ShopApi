@@ -16,6 +16,6 @@ module.exports = {
     "json",
     "node"
   ],
-  testPathIgnorePatterns : ['node_modules','dist'],
+  // testPathIgnorePatterns : ['node_modules','dist'],
   // setupFiles : ['<rootDir>/testSetup.ts']
 }

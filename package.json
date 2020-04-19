@@ -5,7 +5,8 @@
   "main": "start.ts",
   "scripts": {
     "test": "jest --watch",
-    "start": "nodemon --config 'nodemon.json'"
+    "dev": "nodemon --config 'nodemon.json'",
+    "start" : "node dist/start.js"
   },
   "author": "",
   "license": "ISC",

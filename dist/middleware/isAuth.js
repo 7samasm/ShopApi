@@ -4,18 +4,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
-class Err extends Error {
-    constructor(msg) {
-        super(msg);
-        this.statusCode = 0;
-        this.data = [];
-    }
-}
-exports.Err = Err;
+const extended_1 = require("../@types/extended/extended");
 const isAuth = (req, res, next) => {
     const authHeader = req.get('x-Auth');
     if (!authHeader) {
-        const error = new Err('Not authenticated.');
+        const error = new extended_1.Err('Not authenticated.');
         error.statusCode = 401;
         throw error;
     }
@@ -29,7 +22,7 @@ const isAuth = (req, res, next) => {
         throw err;
     }
     if (!decodedToken.hasOwnProperty('userId')) {
-        const error = new Err('Not authenticated.');
+        const error = new extended_1.Err('Not authenticated.');
         error.statusCode = 401;
         throw error;
     }

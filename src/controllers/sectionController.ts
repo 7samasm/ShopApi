@@ -1,6 +1,6 @@
 import { Controller, Get, Post } from '@overnightjs/core'
 import { Request, Response, NextFunction } from 'express-serve-static-core'
-import Section from '../models/section'
+import {Section} from '../models/section'
 
 @Controller('api/sections')
 export class SectionController {

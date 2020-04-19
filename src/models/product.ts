@@ -1,19 +1,25 @@
-import { Schema, models, model, Types, Document,PaginateModel} from 'mongoose'
+import { Schema, models, model, Document,PaginateModel} from 'mongoose'
 import mongoosePaginate from "mongoose-paginate-v2";
-import { IUser } from './user';
+import { IUserDocument } from './user';
+import { ICommentDocument } from './comment';
+import { returnStatement } from '@babel/types';
 
 
-export interface IProduct extends Document {
+export interface IProduct  {
   title       : string
   price       : number
   description : string
   imageUrl    : string
   section     : string
-  userId      : Types.ObjectId
-  
+  userId?     : Schema.Types.ObjectId,
+  comments    : any[]
 }
 
-const productSchema = new Schema(
+export interface IProductDocument extends IProduct,Document {
+  addToComments(cmt : ICommentDocument) : Promise<this>
+}
+
+const productSchema = new Schema<IProductDocument>(
   {
     title: {
       type: String,
@@ -39,7 +45,16 @@ const productSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: 'User',
       required: true
-    }
+    },
+    comments : [
+      {
+        commentId : {
+          type: Schema.Types.ObjectId,
+          ref: 'Comment',
+          required: true
+        }
+      }
+    ]
   },
   { timestamps: true }
 );
@@ -49,7 +64,7 @@ productSchema.plugin(mongoosePaginate);
 productSchema.pre('remove', async function (next) {
   try {
     const id = this._id
-    let users : IUser[] = await models['User'].find({ "cart.productId": id })
+    let users : IUserDocument[] = await models['User'].find({ "cart.productId": id })
     users.forEach(user => {
       user.removeFromCart(id)
     });
@@ -59,6 +74,15 @@ productSchema.pre('remove', async function (next) {
   }
 })
 
+// methods
+productSchema.methods.addToComments = function (cmt : ICommentDocument) {
+  const commentsCopy = [...this.comments]
+  commentsCopy.push({
+    commentId : cmt._id
+  })
+  this.comments = commentsCopy
+  return this.save()
+}
 
-const Product : PaginateModel<IProduct> = model<IProduct>('Product', productSchema) as PaginateModel<IProduct>;
-export default Product
+
+export const Product  = model<IProductDocument,PaginateModel<IProductDocument>>('Product', productSchema);

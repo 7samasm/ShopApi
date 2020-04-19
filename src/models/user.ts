@@ -1,17 +1,18 @@
 import { Schema, model,Document} from 'mongoose'
-import Product from "./product"
+import { Product, IProductDocument } from "./product"
 
-export interface IUser extends Document {
+export interface IUserDocument extends Document {
   name : string
   email: string
   password : string
   cart : any[]
   addToCart(id : any, quantity : number) : Promise<this>
   removeFromCart(productId : any) : Promise<this>
+  clearCart() : Promise<this>
 }
 
 
-const userSchema = new Schema({
+const userSchema = new Schema<IUserDocument>({
   name: {
     type: String,
     required: true
@@ -43,10 +44,11 @@ userSchema.post("remove", doc => {
 })
 
 // methods
-userSchema.methods.addToCart = function ({ _id }: any, quty: number) {
+userSchema.methods.addToCart = function (product: IProductDocument, quty: number) {
+  const {_id} = product
   // index num or -1
   const productIndexInCart = this.cart.findIndex((el: any) => {
-    return el.productId.toString() === _id.toString();
+    return el.productId.toString() === _id.toString()
   });
 
   const cartItemsCopy = [...this.cart];
@@ -78,4 +80,4 @@ userSchema.methods.clearCart = function () {
   return this.save();
 };
 
-export default model<IUser>('User', userSchema);
+export const User =  model<IUserDocument>('User', userSchema);

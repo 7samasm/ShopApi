@@ -17,37 +17,36 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 const core_1 = require("@overnightjs/core");
-const logger_1 = require("@overnightjs/logger");
 const mongoose_1 = require("mongoose");
-const product_1 = __importDefault(require("../models/product"));
+const product_1 = require("../models/product");
 let ShopController = class ShopController {
-    getIndex(req, res) {
-        const sort = {};
-        //check sortBy and orderBy url's query
-        if (req.query.sortBy && req.query.orderBy)
-            sort[req.query.sortBy] = req.query.orderBy === 'desc' ? -1 : 1;
-        product_1.default.paginate({}, {
-            sort: sort,
-            limit: +req.query.limit || 12,
-            page: +req.query.page || 1
-        }, (err, result) => {
-            if (err)
-                return logger_1.Logger.Err(err);
-            res.status(200).send(result);
+    getIndex(req, res, next) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const sort = {};
+            //check sortBy and orderBy url's query
+            if (req.query.sortBy && req.query.orderBy)
+                sort[req.query.sortBy] = req.query.orderBy === 'desc' ? -1 : 1;
+            try {
+                const result = yield product_1.Product.paginate({}, {
+                    sort: sort,
+                    limit: +req.query.limit || 12,
+                    page: +req.query.page || 1
+                });
+                res.status(200).send(result);
+            }
+            catch (error) {
+                next(error);
+            }
         });
     }
-    getProduct(req, res) {
+    getProduct(req, res, next) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const prodId = req.params.id;
                 if (mongoose_1.isValidObjectId(prodId)) {
-                    const product = yield product_1.default.findById(prodId)
-                        .populate('userId');
+                    const product = yield product_1.Product.findById(prodId).populate('userId');
                     res.send(product).status(200);
                 }
                 else {
@@ -55,28 +54,27 @@ let ShopController = class ShopController {
                 }
             }
             catch (e) {
-                console.log(e);
-                // next(e)
+                next(e);
             }
         });
     }
-    getProductsBySection(req, res) {
-        const sort = {};
-        if (req.query.sortBy && req.query.orderBy)
-            sort[req.query.sortBy] = req.query.orderBy === 'desc' ? -1 : 1;
-        const section = req.params.section;
-        product_1.default.paginate({ section }, {
-            sort: sort,
-            limit: 12,
-            page: +req.query.page || 1
-        })
-            .then(pageObj => {
-            console.log(res);
-            res.status(200).send(pageObj);
-        })
-            .catch(err => {
-            console.log(err);
-            // next(err);
+    getProductsBySection(req, res, next) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const sort = {};
+            if (req.query.sortBy && req.query.orderBy)
+                sort[req.query.sortBy] = req.query.orderBy === 'desc' ? -1 : 1;
+            const section = req.params.section;
+            try {
+                const result = yield product_1.Product.paginate({ section }, {
+                    sort: sort,
+                    limit: 12,
+                    page: +req.query.page || 1
+                });
+                res.send(result).status(200);
+            }
+            catch (error) {
+                next(error);
+            }
         });
     }
     ;
@@ -84,20 +82,20 @@ let ShopController = class ShopController {
 __decorate([
     core_1.Get('/'),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, Object]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:paramtypes", [Object, Object, Function]),
+    __metadata("design:returntype", Promise)
 ], ShopController.prototype, "getIndex", null);
 __decorate([
     core_1.Get('products/:id'),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:paramtypes", [Object, Object, Function]),
     __metadata("design:returntype", Promise)
 ], ShopController.prototype, "getProduct", null);
 __decorate([
     core_1.Get('products/section/:section'),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, Object]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:paramtypes", [Object, Object, Function]),
+    __metadata("design:returntype", Promise)
 ], ShopController.prototype, "getProductsBySection", null);
 ShopController = __decorate([
     core_1.Controller('api')

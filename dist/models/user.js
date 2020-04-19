@@ -1,10 +1,7 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = require("mongoose");
-const product_1 = __importDefault(require("./product"));
+const product_1 = require("./product");
 const userSchema = new mongoose_1.Schema({
     name: {
         type: String,
@@ -31,10 +28,11 @@ const userSchema = new mongoose_1.Schema({
 });
 //middlewares
 userSchema.post("remove", doc => {
-    product_1.default.deleteMany({ userId: doc._id });
+    product_1.Product.deleteMany({ userId: doc._id });
 });
 // methods
-userSchema.methods.addToCart = function ({ _id }, quty) {
+userSchema.methods.addToCart = function (product, quty) {
+    const { _id } = product;
     // index num or -1
     const productIndexInCart = this.cart.findIndex((el) => {
         return el.productId.toString() === _id.toString();
@@ -65,4 +63,4 @@ userSchema.methods.clearCart = function () {
     this.cart = [];
     return this.save();
 };
-exports.default = mongoose_1.model('User', userSchema);
+exports.User = mongoose_1.model('User', userSchema);

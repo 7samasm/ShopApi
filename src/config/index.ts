@@ -20,10 +20,10 @@ export const connectDb = async () => {
 
 	return connect(
 		getDbConnectionString(),
-		{ useNewUrlParser: true, useUnifiedTopology: true },
-		err => {
-			if (err) throw new Error('conection failed :(')
-		}
+		{ useNewUrlParser: true, useUnifiedTopology: true }
+		// err => {
+		// 	if (err) throw new Error('conection failed :(')
+		// }
 	)
 
 }

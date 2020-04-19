@@ -17,17 +17,14 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 const core_1 = require("@overnightjs/core");
-const section_1 = __importDefault(require("../models/section"));
+const section_1 = require("../models/section");
 let SectionController = class SectionController {
     getAll(req, res, next) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const sections = yield section_1.default.find();
+                const sections = yield section_1.Section.find();
                 res.status(200).send(sections);
             }
             catch (e) {
@@ -39,10 +36,10 @@ let SectionController = class SectionController {
         return __awaiter(this, void 0, void 0, function* () {
             const { name } = req.body;
             try {
-                const match = yield section_1.default.findOne({ name });
+                const match = yield section_1.Section.findOne({ name });
                 if (match)
                     throw new Error('section were found');
-                const section = new section_1.default({ name });
+                const section = new section_1.Section({ name });
                 res.status(201).send(yield section.save());
             }
             catch (e) {

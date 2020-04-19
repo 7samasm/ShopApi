@@ -13,7 +13,7 @@ exports.default = (app) => {
             next();
         }
         else {
-            app.getApp().use(express_1.static('public'));
+            app.appInstance.use(express_1.static('public'));
             connect_history_api_fallback_1.default()(req, res, next);
         }
     };

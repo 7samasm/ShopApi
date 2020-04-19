@@ -5,28 +5,58 @@ import { pick } from 'lodash'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 
-import Product, { IProduct } from '../models/product'
-import User, { IUser } from '../models/user'
+import { Product, IProductDocument} from '../models/product'
+import { IUserDocument,  User} from '../models/user'
 import isAuth   from '../middleware/isAuth'
 import {login_validate, product_validate, register_validate } from '../middleware/inputValidate'
 import errMiddleware from '../middleware/errorMiddleware'
 import uplodeMiddleware from '../middleware/uplodeMiddleware'
 import Helper from '../util/helper';
 import { Err } from '../@types/extended/extended';
+import { ProductComment } from '../models/comment';
 
+// type body = {
+//   productId : string
+//   quantity  : string
+// }
 
 @Controller('api/admin')
 @ClassErrorMiddleware(errMiddleware)
 export class UserController {
 
+  @Post('comment')
+  @Middleware([isAuth])
+  private async postComment(req: Request, res: Response,  next : NextFunction) {
+    const {productId, commentText} = req.body
+    try {
+      // add comment to comments collection
+      const comment =  await new ProductComment({
+        commentText,
+        userId : (req as any).userId
+      }).save()
+      // add comment to products comments list
+      const product = await Product.findById(productId)
+      if (product) {
+        product.addToComments(comment)
+        res.status(200).send(product)
+      } else {
+        throw new Error('product was not found')
+      }
+    } catch (error) {
+      next(error)
+    }
+
+  }
+
   @Post('cart')
   @Middleware([isAuth])
-  async postCart(req: Request, res: Response,  next : NextFunction) {
+  private async postCart(req: Request, res: Response,  next : NextFunction) {
     try {
-      const { productId, quantity } = req.body
-      const user:IUser       = await User.findById((req as any).userId) as IUser
-      const product:IProduct = await Product.findById(productId) as IProduct
-      const result:IUser     = await user.addToCart(product, quantity)
+      const { productId } = req.body
+      const quantity : string = req.body.quantity
+      const user    = await User.findById((req as any).userId) as IUserDocument
+      const product = await Product.findById(productId) as IProductDocument
+      const result  = await user.addToCart(product, +quantity)
       res.status(201).send(result)
     } catch (e) {
       next(e)
@@ -35,10 +65,10 @@ export class UserController {
 
   @Delete('cart')
   @Middleware([isAuth])
-  async deleteCartItem(req: Request, res: Response,  next : NextFunction) {
+  private async deleteCartItem(req: Request, res: Response,  next : NextFunction) {
     try {
       const { productId } = req.body;
-      const user = await User.findById((req as any).userId) as IUser
+      const user = await User.findById((req as any).userId) as IUserDocument
       await user.removeFromCart(productId)
       res.send('deleated').status(200)
     } catch (e) {
@@ -48,7 +78,7 @@ export class UserController {
 
   @Post('add-product')
   @Middleware([uplodeMiddleware('image'),...product_validate,isAuth])
-  async addProduct(req: Request, res: Response, next : NextFunction) {
+  private async addProduct(req: Request, res: Response, next : NextFunction) {
     try {
       // check inputs validation
       Helper.validResult(req)
@@ -67,7 +97,7 @@ export class UserController {
 
   @Put('edit-product')
   @Middleware([uplodeMiddleware('image'),...product_validate,isAuth])
-  editProduct(req: Request, res: Response,  next : NextFunction) {
+  private editProduct(req: Request, res: Response,  next : NextFunction) {
     try {
       // check inputs validation
       Helper.validResult(req)
@@ -76,7 +106,7 @@ export class UserController {
       // mutate image url with requsted uploded file if found
       if (req.file) body.imageUrl = req.file.filename
       Product.findById(prodId, (err, result) => {
-        const doc : IProduct = result as IProduct
+        const doc = result as IProductDocument
         if (err) return err
         for (const prop in body) {
           doc.set(prop, body[prop])
@@ -92,10 +122,10 @@ export class UserController {
 
   @Delete('delete-product')
   @Middleware([isAuth])
-  async deleteProduct(req: Request, res: Response,  next : NextFunction) {
+  private async deleteProduct(req: Request, res: Response,  next : NextFunction) {
     try {
       const {productId} = req.body;
-      const doc : IProduct = await Product.findById(productId) as IProduct
+      const doc = await Product.findById(productId) as IProductDocument
       doc.remove()
       res.status(200).send(doc)
     } catch (e) {
@@ -105,7 +135,7 @@ export class UserController {
 
   @Get('products/:id')
   @Middleware([isAuth])
-  async getUserProduct(req: Request, res: Response,  next : NextFunction) {
+  private async getUserProduct(req: Request, res: Response,  next : NextFunction) {
     try {
       const { id } = req.params;
       if (isValidObjectId(id)) {
@@ -121,7 +151,7 @@ export class UserController {
 
   @Get('user-info')
   @Middleware([isAuth])
-  async getUserInfos(req: Request, res: Response,  next : NextFunction) {
+  private async getUserInfos(req: Request, res: Response,  next : NextFunction) {
     try {
       const userId = (req as any).userId;
       if (!isValidObjectId(userId)) throw new Error('id is invalid')

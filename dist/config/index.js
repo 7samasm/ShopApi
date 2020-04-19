@@ -22,15 +22,6 @@ const getDbConnectionString = () => {
         return `mongodb://${configValues.uname}:${encodeURIComponent(configValues.pwd)}@ds257648.mlab.com:57648/${configValues.db}`;
     return `mongodb://localhost:27017/${configValues.db}`;
 };
-exports.connectDb = (cb) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const res = yield mongoose_1.connect(getDbConnectionString(), { useNewUrlParser: true, useUnifiedTopology: true }, err => {
-            if (err)
-                throw new Error('conection failed :(');
-        });
-        cb(null, res);
-    }
-    catch (error) {
-        cb(error, undefined);
-    }
+exports.connectDb = () => __awaiter(void 0, void 0, void 0, function* () {
+    return mongoose_1.connect(getDbConnectionString(),{ useNewUrlParser: true, useUnifiedTopology: true });
 });

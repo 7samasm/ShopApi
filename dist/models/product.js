@@ -42,25 +42,19 @@ const productSchema = new mongoose_1.Schema({
     }
 }, { timestamps: true });
 productSchema.plugin(mongoose_paginate_v2_1.default);
-// const user     = await User.findById(req.userId)
-// const userwp   = await user.populate('cart.productId').execPopulate()
-//findByIdAndRemove
 productSchema.pre('remove', function (next) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            // statements
             const id = this._id;
             let users = yield mongoose_1.models['User'].find({ "cart.productId": id });
-            users.forEach(el => {
-                el.removeFromCart(id);
+            users.forEach(user => {
+                user.removeFromCart(id);
             });
             next();
         }
         catch (e) {
-            // statements
             next(e);
         }
     });
 });
-const Product = mongoose_1.model('Product', productSchema);
-exports.default = Product;
+exports.Product = mongoose_1.model('Product', productSchema);

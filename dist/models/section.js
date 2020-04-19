@@ -7,4 +7,4 @@ const sectionSchema = new mongoose_1.Schema({
         required: true
     }
 });
-exports.default = mongoose_1.model('section', sectionSchema);
+exports.Section = mongoose_1.model('section', sectionSchema);

@@ -20,34 +20,33 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
-    result["default"] = mod;
-    return result;
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 const core_1 = require("@overnightjs/core");
 const mongoose_1 = require("mongoose");
 const lodash_1 = require("lodash");
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
-const express_validator_1 = require("express-validator");
-const product_1 = __importDefault(require("../models/product"));
-const user_1 = __importDefault(require("../models/user"));
-const isAuth_1 = __importStar(require("../middleware/isAuth"));
+const product_1 = require("../models/product");
+const user_1 = require("../models/user");
+const isAuth_1 = __importDefault(require("../middleware/isAuth"));
 const inputValidate_1 = require("../middleware/inputValidate");
 const errorMiddleware_1 = __importDefault(require("../middleware/errorMiddleware"));
 const uplodeMiddleware_1 = __importDefault(require("../middleware/uplodeMiddleware"));
+const helper_1 = __importDefault(require("../util/helper"));
+const extended_1 = require("../@types/extended/extended");
+// type body = {
+//   productId : string
+//   quantity  : string
+// }
 let UserController = class UserController {
     postCart(req, res, next) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const { productId, quantity } = req.body;
-                const user = yield user_1.default.findById(req.userId);
-                const product = yield product_1.default.findById(productId);
-                const result = yield user.addToCart(product, quantity || 1);
+                const { productId } = req.body;
+                const quantity = req.body.quantity;
+                const user = yield user_1.User.findById(req.userId);
+                const product = yield product_1.Product.findById(productId);
+                const result = yield user.addToCart(product, +quantity);
                 res.status(201).send(result);
             }
             catch (e) {
@@ -60,8 +59,7 @@ let UserController = class UserController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { productId } = req.body;
-                console.log(productId);
-                const user = yield user_1.default.findById(req.userId);
+                const user = yield user_1.User.findById(req.userId);
                 yield user.removeFromCart(productId);
                 res.send('deleated').status(200);
             }
@@ -70,23 +68,16 @@ let UserController = class UserController {
             }
         });
     }
-    addddProduct(req, res, next) {
+    addProduct(req, res, next) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 // check inputs validation
-                const errs = express_validator_1.validationResult(req);
-                if (!errs.isEmpty()) {
-                    for (const err of errs.errors) {
-                        const e = new isAuth_1.Err(`${err.msg} in ${err.param} input`);
-                        e.statusCode = 422;
-                        throw e;
-                    }
-                }
+                helper_1.default.validResult(req);
                 const body = lodash_1.pick(req.body, ['title', 'price', 'description', 'imageUrl', 'section']);
                 // mutate image url with requsted uploded file if found
                 if (req.file)
                     body.imageUrl = req.file.filename;
-                const product = new product_1.default(Object.assign(Object.assign({}, body), { userId: req.userId }));
+                const product = new product_1.Product(Object.assign(Object.assign({}, body), { userId: req.userId }));
                 res.status(201).send(yield product.save());
             }
             catch (e) {
@@ -97,20 +88,13 @@ let UserController = class UserController {
     editProduct(req, res, next) {
         try {
             // check inputs validation
-            const errs = express_validator_1.validationResult(req);
-            if (!errs.isEmpty()) {
-                for (const err of errs.errors) {
-                    const e = new isAuth_1.Err(`${err.msg} in ${err.param} input`);
-                    e.statusCode = 422;
-                    throw e;
-                }
-            }
+            helper_1.default.validResult(req);
             const prodId = req.body.productId;
             const body = lodash_1.pick(req.body, ['title', 'price', 'description', 'imageUrl', 'section']);
             // mutate image url with requsted uploded file if found
             if (req.file)
                 body.imageUrl = req.file.filename;
-            product_1.default.findById(prodId, (err, result) => {
+            product_1.Product.findById(prodId, (err, result) => {
                 const doc = result;
                 if (err)
                     return err;
@@ -126,28 +110,24 @@ let UserController = class UserController {
         }
     }
     deleteProduct(req, res, next) {
-        try {
-            const { productId } = req.body;
-            console.log(productId);
-            product_1.default.findById(productId, (err, result) => {
-                if (err)
-                    throw err;
-                const doc = result;
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { productId } = req.body;
+                const doc = yield product_1.Product.findById(productId);
                 doc.remove();
                 res.status(200).send(doc);
-            });
-        }
-        catch (e) {
-            next(e);
-        }
+            }
+            catch (e) {
+                next(e);
+            }
+        });
     }
     getUserProduct(req, res, next) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const { id } = req.params;
                 if (mongoose_1.isValidObjectId(id)) {
-                    const user = yield user_1.default.findById(req.userId);
-                    const userProds = yield product_1.default.findOne({ _id: id, userId: user._id });
+                    const userProds = yield product_1.Product.findOne({ _id: id, userId: req.userId });
                     res.status(200).send(userProds);
                 }
                 else {
@@ -165,7 +145,7 @@ let UserController = class UserController {
                 const userId = req.userId;
                 if (!mongoose_1.isValidObjectId(userId))
                     throw new Error('id is invalid');
-                const stat = yield user_1.default.aggregate([
+                const stat = yield user_1.User.aggregate([
                     //  select user who match requsted id
                     { $match: { _id: mongoose_1.Types.ObjectId(userId) } },
                     // split his cart into several documonts
@@ -222,7 +202,7 @@ let UserController = class UserController {
                         }
                     }
                 ]).exec();
-                product_1.default.find({ userId }, (err, docs) => {
+                product_1.Product.find({ userId }, (err, docs) => {
                     res.send({
                         user: stat[0].user,
                         cart: stat[0].cartShape,
@@ -240,22 +220,14 @@ let UserController = class UserController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 // check inputs validation
-                const errs = express_validator_1.validationResult(req);
-                if (!errs.isEmpty()) {
-                    for (const err of errs.errors) {
-                        const e = new isAuth_1.Err(`${err.msg} in ${err.param} input!`);
-                        e.statusCode = 422;
-                        e.data = errs.array();
-                        throw e;
-                    }
-                }
+                helper_1.default.validResult(req);
                 // get body values
                 const body = lodash_1.pick(req.body, ['name', 'email', 'password']);
                 // hashing password
                 const hashedPass = yield bcryptjs_1.default.hash(body.password, 10);
                 // mutate body's password whith hashedPass
                 body.password = hashedPass;
-                const user = new user_1.default(body);
+                const user = new user_1.User(body);
                 res.status(201).send(yield user.save());
             }
             catch (err) {
@@ -267,20 +239,13 @@ let UserController = class UserController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 // check inputs validation
-                const errs = express_validator_1.validationResult(req);
-                if (!errs.isEmpty()) {
-                    for (const err of errs.errors) {
-                        const e = new isAuth_1.Err(`${err.msg} in ${err.param} input!`);
-                        e.statusCode = 422;
-                        throw e;
-                    }
-                }
+                helper_1.default.validResult(req);
                 // get requested email and password
                 const { email, password } = lodash_1.pick(req.body, ['email', 'password']);
                 // get user by requested email and check if its found
-                const user = yield user_1.default.findOne({ email: email });
+                const user = yield user_1.User.findOne({ email: email });
                 if (!user) {
-                    const error = new isAuth_1.Err('A user with this email could not be found.');
+                    const error = new extended_1.Err('A user with this email could not be found.');
                     error.statusCode = 401;
                     throw error;
                 }
@@ -290,7 +255,7 @@ let UserController = class UserController {
                 */
                 const isEqual = yield bcryptjs_1.default.compare(password, user.password);
                 if (!isEqual) {
-                    const error = new isAuth_1.Err('Wrong password!');
+                    const error = new extended_1.Err('Wrong password!');
                     error.statusCode = 401;
                     throw error;
                 }
@@ -327,7 +292,7 @@ __decorate([
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, Object, Function]),
     __metadata("design:returntype", Promise)
-], UserController.prototype, "addddProduct", null);
+], UserController.prototype, "addProduct", null);
 __decorate([
     core_1.Put('edit-product'),
     core_1.Middleware([uplodeMiddleware_1.default('image'), ...inputValidate_1.product_validate, isAuth_1.default]),
@@ -340,7 +305,7 @@ __decorate([
     core_1.Middleware([isAuth_1.default]),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, Object, Function]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:returntype", Promise)
 ], UserController.prototype, "deleteProduct", null);
 __decorate([
     core_1.Get('products/:id'),

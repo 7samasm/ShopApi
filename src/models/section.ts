@@ -12,4 +12,4 @@ const sectionSchema = new Schema({
 	}
 })
 
-export default model<ISection>('section', sectionSchema);
+export const Section =  model<ISection>('section', sectionSchema);
