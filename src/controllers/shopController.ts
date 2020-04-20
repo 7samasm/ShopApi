@@ -32,8 +32,11 @@ export class ShopController {
       const prodId = req.params.id;
       if (isValidObjectId(prodId)) {
         const product =  await Product.findById(prodId)
-        .populate('userId','-cart')
-        // .populate('comments.')
+        .populate('userId','-cart -password')
+        .populate({
+          path : 'comments',
+          populate : {path : 'userId', select : 'name email'}
+        })
         res.send(product).status(200)
       } else {
         res.send(false)

@@ -48,11 +48,8 @@ const productSchema = new Schema<IProductDocument>(
     },
     comments : [
       {
-        commentId : {
-          type: Schema.Types.ObjectId,
-          ref: 'Comment',
-          required: true
-        }
+        type: Schema.Types.ObjectId,
+        ref: 'Comment',
       }
     ]
   },
@@ -77,9 +74,7 @@ productSchema.pre('remove', async function (next) {
 // methods
 productSchema.methods.addToComments = function (cmt : ICommentDocument) {
   const commentsCopy = [...this.comments]
-  commentsCopy.push({
-    commentId : cmt._id
-  })
+  commentsCopy.push(cmt._id)
   this.comments = commentsCopy
   return this.save()
 }
