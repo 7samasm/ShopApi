@@ -39,7 +39,13 @@ const productSchema = new mongoose_1.Schema({
         type: mongoose_1.Schema.Types.ObjectId,
         ref: 'User',
         required: true
-    }
+    },
+    comments: [
+        {
+            type: mongoose_1.Schema.Types.ObjectId,
+            ref: 'Comment',
+        }
+    ]
 }, { timestamps: true });
 productSchema.plugin(mongoose_paginate_v2_1.default);
 productSchema.pre('remove', function (next) {
@@ -57,4 +63,11 @@ productSchema.pre('remove', function (next) {
         }
     });
 });
+// methods
+productSchema.methods.addToComments = function (cmt) {
+    const commentsCopy = [...this.comments];
+    commentsCopy.push(cmt._id);
+    this.comments = commentsCopy;
+    return this.save();
+};
 exports.Product = mongoose_1.model('Product', productSchema);

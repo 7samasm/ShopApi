@@ -1,7 +1,7 @@
 import { Controller, Get } from '@overnightjs/core'
 import { Request, Response, NextFunction } from 'express-serve-static-core';
 import { isValidObjectId } from 'mongoose'
-import {Product} from '../models/product'
+import { Product } from '../models/product'
 
 @Controller('api')
 export class ShopController {
@@ -31,12 +31,12 @@ export class ShopController {
     try {
       const prodId = req.params.id;
       if (isValidObjectId(prodId)) {
-        const product =  await Product.findById(prodId)
-        .populate('userId','-cart -password')
-        .populate({
-          path : 'comments',
-          populate : {path : 'userId', select : 'name email'}
-        })
+        const product = await Product.findById(prodId)
+          .populate('userId', '-cart -password')
+          .populate({
+            path: 'comments',
+            populate: { path: 'userId', select: 'name email' }
+          })
         res.send(product).status(200)
       } else {
         res.send(false)
@@ -56,7 +56,7 @@ export class ShopController {
       const result = await Product.paginate({ section },
         {
           sort: sort,
-          limit: 12,
+          limit: +req.query.limit || 12,
           page: +req.query.page || 1
         }
       )
@@ -65,5 +65,25 @@ export class ShopController {
       next(error)
     }
   };
+
+  @Get('products/stats/common')
+  private async getMostCommonProducts(req: Request, res: Response, next: NextFunction) {
+    const prods = await Product.aggregate([
+      {$unwind: "$comments"},
+      {$group   : { _id : this.mapValueKeys(),commentsCount : {$sum :1 } } },
+      {$project : {...this.mapValueKeys('$_id.'),commentsCount: 1,}},
+      {$sort : {commentsCount : -1}},
+      {$limit : 3},
+    ])
+    res.json(prods);
+  }
+
+  private mapValueKeys(prefix : string = '$') : {[k : string] : string}{
+    let keys = ['_id','title','description','imageUrl']
+    const obj : {[k : string] : string} = {}
+    for(let key of keys)
+      obj[key] = prefix + key
+    return obj
+  }
 
 }

@@ -34,11 +34,36 @@ const errorMiddleware_1 = __importDefault(require("../middleware/errorMiddleware
 const uplodeMiddleware_1 = __importDefault(require("../middleware/uplodeMiddleware"));
 const helper_1 = __importDefault(require("../util/helper"));
 const extended_1 = require("../@types/extended/extended");
+const comment_1 = require("../models/comment");
 // type body = {
 //   productId : string
 //   quantity  : string
 // }
 let UserController = class UserController {
+    postComment(req, res, next) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { productId, commentText } = req.body;
+            try {
+                // add comment to comments collection
+                const comment = yield new comment_1.ProductComment({
+                    commentText,
+                    userId: req.userId
+                }).save();
+                // add comment to products comments list
+                const product = yield product_1.Product.findById(productId);
+                if (product) {
+                    product.addToComments(comment);
+                    res.status(200).send(product);
+                }
+                else {
+                    throw new Error('product was not found');
+                }
+            }
+            catch (error) {
+                next(error);
+            }
+        });
+    }
     postCart(req, res, next) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
@@ -216,6 +241,82 @@ let UserController = class UserController {
             ;
         });
     }
+    testGetUserInfos(req, res, next) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const userId = '5ea7f825a95afa089f7d6072';
+                if (!mongoose_1.isValidObjectId(userId))
+                    throw new Error('id is invalid');
+                const stat = yield user_1.User.aggregate([
+                    //  select user who match requsted id
+                    { $match: { _id: mongoose_1.Types.ObjectId(userId) } },
+                    // split his cart into several documonts
+                    {
+                        $unwind: {
+                            path: "$cart",
+                            preserveNullAndEmptyArrays: true
+                        }
+                    },
+                    // bring product's data for each splited document
+                    {
+                        $lookup: {
+                            from: "products",
+                            localField: "cart.productId",
+                            foreignField: "_id",
+                            as: "_cart"
+                        }
+                    },
+                    // will get singel doc cause look up applay for each ex unwind
+                    {
+                        $unwind: {
+                            path: "$_cart",
+                            preserveNullAndEmptyArrays: true
+                        }
+                    },
+                    // add quantity field to cart
+                    { $addFields: { "_cart.quantity": "$cart.quantity" } },
+                    // group spilted docs by user _id        
+                    {
+                        $group: {
+                            _id: {
+                                _id: "$_id",
+                                user: {
+                                    id: "$_id",
+                                    name: "$name",
+                                    email: "$email"
+                                }
+                            },
+                            _cart: { $push: "$_cart" },
+                            totalPrice: { $sum: { $multiply: ["$_cart.price", "$_cart.quantity"] } },
+                            totalItems: { $sum: { $multiply: [1, "$_cart.quantity"] } }
+                        }
+                    },
+                    // bunddle to final output      
+                    {
+                        $project: {
+                            _id: 0,
+                            user: "$_id.user",
+                            cartShape: {
+                                products: { $cond: [{ $eq: ["$_cart", [{}]] }, [], "$_cart"] },
+                                totalPrice: "$totalPrice",
+                                totalItems: "$totalItems"
+                            }
+                        }
+                    }
+                ]).exec();
+                const docs = yield product_1.Product.paginate({ userId });
+                res.send({
+                    user: stat[0].user,
+                    cart: stat[0].cartShape,
+                    products: docs
+                }).status(200);
+            }
+            catch (e) {
+                next(e);
+            }
+            ;
+        });
+    }
     signUp(req, res, next) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
@@ -273,6 +374,13 @@ let UserController = class UserController {
     }
 };
 __decorate([
+    core_1.Post('comment'),
+    core_1.Middleware([isAuth_1.default]),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object, Function]),
+    __metadata("design:returntype", Promise)
+], UserController.prototype, "postComment", null);
+__decorate([
     core_1.Post('cart'),
     core_1.Middleware([isAuth_1.default]),
     __metadata("design:type", Function),
@@ -321,6 +429,12 @@ __decorate([
     __metadata("design:paramtypes", [Object, Object, Function]),
     __metadata("design:returntype", Promise)
 ], UserController.prototype, "getUserInfos", null);
+__decorate([
+    core_1.Get('test-user-info'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object, Function]),
+    __metadata("design:returntype", Promise)
+], UserController.prototype, "testGetUserInfos", null);
 __decorate([
     core_1.Post('signup'),
     core_1.Middleware([...inputValidate_1.register_validate]),

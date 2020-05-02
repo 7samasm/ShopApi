@@ -23,5 +23,9 @@ const getDbConnectionString = () => {
     return `mongodb://localhost:27017/${configValues.db}`;
 };
 exports.connectDb = () => __awaiter(void 0, void 0, void 0, function* () {
-    return mongoose_1.connect(getDbConnectionString(),{ useNewUrlParser: true, useUnifiedTopology: true });
+    return mongoose_1.connect(getDbConnectionString(), { useNewUrlParser: true, useUnifiedTopology: true }
+    // err => {
+    // 	if (err) throw new Error('conection failed :(')
+    // }
+    );
 });

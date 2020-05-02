@@ -1,6 +1,6 @@
 // import {Application, application} from 'express'
 // import * as express from 'express'
-import 'reflect-metadata'
+// import 'reflect-metadata'
 import 
 {
   static as staticFiles

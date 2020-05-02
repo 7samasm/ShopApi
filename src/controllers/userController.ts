@@ -226,6 +226,81 @@ export class UserController {
     };
   }
 
+  @Get('test-user-info')
+  private async testGetUserInfos(req: Request, res: Response,  next : NextFunction) {
+    try {
+      const userId = ('5ea7f825a95afa089f7d6072' as any);
+      if (!isValidObjectId(userId)) throw new Error('id is invalid')
+      const stat = await User.aggregate([
+        //  select user who match requsted id
+        { $match: { _id: Types.ObjectId(userId) } },
+        // split his cart into several documonts
+        {
+          $unwind: {
+            path: "$cart",
+            preserveNullAndEmptyArrays: true
+          }
+        },
+        // bring product's data for each splited document
+        {
+          $lookup: {
+            from: "products",
+            localField: "cart.productId",
+            foreignField: "_id",
+            as: "_cart"
+          }
+        },
+        // will get singel doc cause look up applay for each ex unwind
+        {
+          $unwind: {
+            path: "$_cart",
+            preserveNullAndEmptyArrays: true
+          }
+        },
+        // add quantity field to cart
+        { $addFields: { "_cart.quantity": "$cart.quantity" } },
+        // group spilted docs by user _id        
+        {
+          $group: {
+            _id: {
+              _id: "$_id",
+              user: {
+                id: "$_id",
+                name: "$name",
+                email: "$email"
+              }
+            },
+            _cart: { $push: "$_cart" },
+            totalPrice: { $sum: { $multiply: ["$_cart.price", "$_cart.quantity"] } },
+            totalItems: { $sum: { $multiply: [1, "$_cart.quantity"] } }
+          }
+        },
+        // bunddle to final output      
+        {
+          $project: {
+            _id: 0,
+            user: "$_id.user",
+            cartShape: {
+              products: { $cond: [{ $eq: ["$_cart", [{}]] }, [], "$_cart"] },
+              totalPrice: "$totalPrice",
+              totalItems: "$totalItems"
+            }
+          }
+        }
+      ]).exec()
+
+      const docs = await Product.paginate({ userId })
+      res.send({
+        user: stat[0].user,
+        cart: stat[0].cartShape,
+        products: docs
+      }).status(200)
+    }
+    catch (e) {
+      next(e)
+    };
+  }
+  
   @Post('signup')
   @Middleware([...register_validate])
   private async signUp(req: Request, res: Response,  next : NextFunction) {

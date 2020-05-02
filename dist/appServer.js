@@ -12,7 +12,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 // import {Application, application} from 'express'
 // import * as express from 'express'
-require("reflect-metadata");
+// import 'reflect-metadata'
 const express_1 = require("express");
 const core_1 = require("@overnightjs/core");
 const logger_1 = require("@overnightjs/logger");

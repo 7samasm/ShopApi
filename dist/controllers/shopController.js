@@ -46,7 +46,12 @@ let ShopController = class ShopController {
             try {
                 const prodId = req.params.id;
                 if (mongoose_1.isValidObjectId(prodId)) {
-                    const product = yield product_1.Product.findById(prodId).populate('userId');
+                    const product = yield product_1.Product.findById(prodId)
+                        .populate('userId', '-cart -password')
+                        .populate({
+                        path: 'comments',
+                        populate: { path: 'userId', select: 'name email' }
+                    });
                     res.send(product).status(200);
                 }
                 else {
@@ -67,7 +72,7 @@ let ShopController = class ShopController {
             try {
                 const result = yield product_1.Product.paginate({ section }, {
                     sort: sort,
-                    limit: 12,
+                    limit: +req.query.limit || 12,
                     page: +req.query.page || 1
                 });
                 res.send(result).status(200);
@@ -78,6 +83,25 @@ let ShopController = class ShopController {
         });
     }
     ;
+    getMostCommonProducts(req, res, next) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const prods = yield product_1.Product.aggregate([
+                { $unwind: "$comments" },
+                { $group: { _id: this.mapValueKeys(), commentsCount: { $sum: 1 } } },
+                { $project: Object.assign(Object.assign({}, this.mapValueKeys('$_id.')), { commentsCount: 1 }) },
+                { $sort: { commentsCount: -1 } },
+                { $limit: 3 },
+            ]);
+            res.json(prods);
+        });
+    }
+    mapValueKeys(prefix = '$') {
+        let keys = ['_id', 'title', 'description', 'imageUrl'];
+        const obj = {};
+        for (let key of keys)
+            obj[key] = prefix + key;
+        return obj;
+    }
 };
 __decorate([
     core_1.Get('/'),
@@ -97,6 +121,12 @@ __decorate([
     __metadata("design:paramtypes", [Object, Object, Function]),
     __metadata("design:returntype", Promise)
 ], ShopController.prototype, "getProductsBySection", null);
+__decorate([
+    core_1.Get('products/stats/common'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object, Function]),
+    __metadata("design:returntype", Promise)
+], ShopController.prototype, "getMostCommonProducts", null);
 ShopController = __decorate([
     core_1.Controller('api')
 ], ShopController);

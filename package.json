@@ -6,7 +6,7 @@
   "scripts": {
     "test": "jest --watch",
     "dev": "nodemon --config 'nodemon.json'",
-    "start" : "node dist/start.js"
+    "start": "node dist/start.js"
   },
   "author": "",
   "license": "ISC",

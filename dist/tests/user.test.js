@@ -30,12 +30,12 @@ describe('USER', () => {
     }));
     describe('POST /admin/add-product', () => {
         it('should add product', (done) => {
-            const product = {
+            const product /*: IProduct */ = {
                 title: 'ali 601',
                 price: 125,
                 description: 'ncns',
                 imageUrl: 'd.png',
-                section: 'laptops'
+                section: 'laptops',
             };
             // console.log(app)
             supertest_1.default(app)
