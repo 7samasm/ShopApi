@@ -53,7 +53,11 @@ let UserController = class UserController {
                 const product = yield product_1.Product.findById(productId);
                 if (product) {
                     product.addToComments(comment);
-                    res.status(200).send(product);
+                    const populatedComment = yield comment.populate({
+                        path: 'userId',
+                        select: 'name email'
+                    }).execPopulate();
+                    res.status(200).send(populatedComment);
                 }
                 else {
                     throw new Error('product was not found');
@@ -304,7 +308,10 @@ let UserController = class UserController {
                         }
                     }
                 ]).exec();
-                const docs = yield product_1.Product.paginate({ userId });
+                const docs = yield product_1.Product.paginate({ userId }, {
+                    limit: +req.query.limit || 12,
+                    page: +req.query.page || 1
+                });
                 res.send({
                     user: stat[0].user,
                     cart: stat[0].cartShape,

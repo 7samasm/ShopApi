@@ -38,7 +38,11 @@ export class UserController {
       const product = await Product.findById(productId)
       if (product) {
         product.addToComments(comment)
-        res.status(200).send(product)
+        const populatedComment = await comment.populate({
+          path : 'userId',
+          select: 'name email'
+        }).execPopulate()
+        res.status(200).send(populatedComment)
       } else {
         throw new Error('product was not found')
       }
@@ -289,7 +293,13 @@ export class UserController {
         }
       ]).exec()
 
-      const docs = await Product.paginate({ userId })
+      const docs = await Product.paginate(
+        { userId },
+        {
+          limit : +req.query.limit || 12,
+          page: +req.query.page || 1
+        }
+      )
       res.send({
         user: stat[0].user,
         cart: stat[0].cartShape,
