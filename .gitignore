@@ -1,4 +1,9 @@
+<<<<<<< HEAD
 node_modules/
 play-ground/
+=======
+/node_modules
+/play-ground
+>>>>>>> master
 public/img/
 dist/
